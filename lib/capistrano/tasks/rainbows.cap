@@ -3,7 +3,7 @@ namespace :rainbows do
   task :start do
     on roles :app do
       within release_path do
-        execute :bundle, "exec rainbows -C config/rainbows.rb --listen 'unix://#{shared_path}/sockets/rainbows.sock' -E #{fetch(:stage)} --pid '#{shared_path}/pids/rainbows.pid' -D"
+        execute :bundle, "exec rainbows -c config/rainbows.rb --listen 'unix://#{shared_path}/sockets/rainbows.sock' -E #{fetch(:stage)} --pid '#{shared_path}/pids/rainbows.pid' -D"
       end
     end
   end
@@ -19,10 +19,14 @@ namespace :rainbows do
 
   desc 'Restart rainbows'
   task :restart do
-    on roles :app do
-      within release_path do
-        execute "kill -s USR2 `cat #{shared_path}/pids/rainbows.pid`;true"
+    if 'true' ==  capture("if [ -e #{full_path} ]; then echo 'true'; fi").strip
+      on roles :app do
+        within release_path do
+          execute "kill -s USR2 `cat #{shared_path}/pids/rainbows.pid`;true"
+        end
       end
+    else
+      invoke 'rainbows:start'
     end
   end
 
