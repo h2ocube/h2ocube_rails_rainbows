@@ -1,0 +1,26 @@
+PATH
+  remote: .
+  specs:
+    h2ocube_rails_rainbows (0.0.1)
+      rainbows
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    kgio (2.8.1)
+    rack (1.5.2)
+    rainbows (4.6.0)
+      kgio (~> 2.5)
+      rack (~> 1.1)
+      unicorn (~> 4.8)
+    raindrops (0.12.0)
+    unicorn (4.8.1)
+      kgio (~> 2.6)
+      rack
+      raindrops (~> 0.7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  h2ocube_rails_rainbows!

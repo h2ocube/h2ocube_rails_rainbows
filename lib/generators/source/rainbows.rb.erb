@@ -1,0 +1,23 @@
+app_path = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+
+worker_processes 1
+preload_app true
+GC.respond_to?(:copy_on_write_friendly=) and GC.copy_on_write_friendly = true
+
+working_directory app_path
+
+stderr_path 'log/rainbows.stderr.log'
+stdout_path 'log/rainbows.stdout.log'
+
+before_fork do |server, worker|
+  ActiveRecord::Base.connection.disconnect! if defined?(ActiveRecord)
+end
+ 
+after_fork do |server, worker|
+  ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+end
+ 
+Rainbows! do
+  use :ThreadPool
+  worker_connections 1024
+end
