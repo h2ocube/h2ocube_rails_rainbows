@@ -19,7 +19,7 @@ namespace :rainbows do
 
   desc 'Restart rainbows'
   task :restart do
-    if 'true' ==  capture("if [ -e #{full_path} ]; then echo 'true'; fi").strip
+    if 'true' ==  capture("if [ -e #{shared_path}/pids/rainbows.pid ]; then echo 'true'; fi").strip
       on roles :app do
         within release_path do
           execute "kill -s USR2 `cat #{shared_path}/pids/rainbows.pid`;true"
