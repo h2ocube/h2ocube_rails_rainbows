@@ -19,15 +19,16 @@ namespace :rainbows do
 
   desc 'Restart rainbows'
   task :restart do
-    if 'true' ==  capture("if [ -e #{shared_path}/pids/rainbows.pid ]; then echo 'true'; fi").strip
-      on roles :app do
+    pid_exist = true
+    on roles :app do
+      pid_exist = 'true' ==  capture("if [ -e #{shared_path}/pids/rainbows.pid ]; then echo 'true'; fi").strip
+      if pid_exist
         within release_path do
           execute "kill -s USR2 `cat #{shared_path}/pids/rainbows.pid`;true"
         end
       end
-    else
-      invoke 'rainbows:start'
     end
+    invoke 'rainbows:start' unless pid_exist
   end
 
   desc 'Cold Restart rainbows'
