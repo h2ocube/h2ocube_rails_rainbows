@@ -11,8 +11,21 @@ namespace :rainbows do
   desc 'Stop rainbows'
   task :stop do
     on roles :app do
-      within release_path do
-        execute "kill -s QUIT `cat #{shared_path}/pids/rainbows.pid`;true"
+      pid_exist = 'true' ==  capture("if [ -e #{shared_path}/pids/rainbows.pid ]; then echo 'true'; fi").strip
+      times = 0
+      until pid_exist && times < 10 do
+        within release_path do
+          execute "kill -s QUIT `cat #{shared_path}/pids/rainbows.pid`;true"
+        end
+        sleep 1
+        pid_exist = 'true' ==  capture("if [ -e #{shared_path}/pids/rainbows.pid ]; then echo 'true'; fi").strip
+        times = times + 1
+      end
+
+      if times > 9
+        within shared_path do
+          execute :rm, 'pids/rainbows.pid;true'
+        end
       end
     end
   end
@@ -34,7 +47,6 @@ namespace :rainbows do
   desc 'Cold Restart rainbows'
   task :cold_restart do
     invoke 'rainbows:stop'
-    sleep 3
     invoke 'rainbows:start'
   end
 
