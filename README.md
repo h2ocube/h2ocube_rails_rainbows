@@ -23,7 +23,10 @@ Or install it yourself as:
     # Capfile
     require 'capistrano/rainbows'
 
-Puma specific tasks for Capistrano v3:
+    # config/deploy.rb
+    set :rainbows_bin, 'rainbows' # you can use `unicorn` replace `rainbows` 
+
+Rainbows specific tasks for Capistrano v3:
 
     cap rainbows:start
     cap rainbows:stop

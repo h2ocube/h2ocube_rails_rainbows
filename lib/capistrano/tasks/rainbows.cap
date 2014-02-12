@@ -1,9 +1,16 @@
 namespace :rainbows do
+  set :rainbows_bin, fetch(:rainbows_bin, 'rainbows')
+
   desc 'Start rainbows'
   task :start do
     on roles :app do
-      within release_path do
-        execute :bundle, "exec rainbows -c config/rainbows.rb --listen 'unix://#{shared_path}/sockets/rainbows.sock' -E #{fetch(:stage)} --pid '#{shared_path}/pids/rainbows.pid' -D"
+      if !pid_exist?
+        within release_path do
+          execute :bundle, "exec #{fetch(:rainbows_bin)} -c config/#{fetch(:rainbows_bin)}.rb --listen 'unix://#{shared_path}/sockets/#{fetch(:rainbows_bin)}.sock' -E #{fetch(:stage)} -P '#{shared_path}/pids/#{fetch(:rainbows_bin)}.pid' -D"
+          info 'Rainbows started.'
+        end
+      else
+        info 'Rainbows is running, not need to start.'
       end
     end
   end
@@ -11,20 +18,20 @@ namespace :rainbows do
   desc 'Stop rainbows'
   task :stop do
     on roles :app do
-      pid_exist = 'true' ==  capture("if [ -e #{shared_path}/pids/rainbows.pid ]; then echo 'true'; fi").strip
+      pid_exist = pid_exist?
       times = 0
-      until pid_exist && times < 10 do
+      until !pid_exist && times < 10 do
         within release_path do
-          execute "kill -s QUIT `cat #{shared_path}/pids/rainbows.pid`;true"
+          execute "kill -s QUIT `cat #{shared_path}/pids/#{fetch(:rainbows_bin)}.pid`;true"
         end
-        sleep 1
-        pid_exist = 'true' ==  capture("if [ -e #{shared_path}/pids/rainbows.pid ]; then echo 'true'; fi").strip
+        sleep times + 1
+        pid_exist = pid_exist?
         times = times + 1
       end
 
-      if times > 9
+      if times >= 9
         within shared_path do
-          execute :rm, 'pids/rainbows.pid;true'
+          execute :rm, 'pids/#{fetch(:rainbows_bin)}.pid;true'
         end
       end
     end
@@ -34,10 +41,10 @@ namespace :rainbows do
   task :restart do
     pid_exist = true
     on roles :app do
-      pid_exist = 'true' ==  capture("if [ -e #{shared_path}/pids/rainbows.pid ]; then echo 'true'; fi").strip
+      pid_exist = pid_exist?
       if pid_exist
         within release_path do
-          execute "kill -s USR2 `cat #{shared_path}/pids/rainbows.pid`;true"
+          execute "kill -s USR2 `cat #{shared_path}/pids/#{fetch(:rainbows_bin)}.pid`;true"
         end
       end
     end
@@ -48,6 +55,10 @@ namespace :rainbows do
   task :cold_restart do
     invoke 'rainbows:stop'
     invoke 'rainbows:start'
+  end
+
+  def pid_exist?
+    'true' ==  capture("if [ -e #{shared_path}/pids/#{fetch(:rainbows_bin)}.pid ]; then echo 'true'; fi").strip
   end
 
   before 'deploy:published', 'rainbows:restart'
