@@ -6,7 +6,7 @@ namespace :rainbows do
     on roles :app do
       if !pid_exist?
         within release_path do
-          execute :bundle, "exec #{fetch(:rainbows_bin)} -c config/#{fetch(:rainbows_bin)}.rb --listen 'unix://#{shared_path}/sockets/#{fetch(:rainbows_bin)}.sock' -E #{fetch(:stage)} -P '#{shared_path}/pids/#{fetch(:rainbows_bin)}.pid' -D"
+          execute :bundle, "exec #{fetch(:rainbows_bin)} -c config/#{fetch(:rainbows_bin)}.rb --listen 'unix://#{shared_path}/sockets/#{fetch(:rainbows_bin)}.sock' -E #{fetch(:stage)} -D"
           info 'Rainbows started.'
         end
       else
